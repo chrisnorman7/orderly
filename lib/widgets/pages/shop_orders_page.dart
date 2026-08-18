@@ -28,7 +28,7 @@ class ShopOrdersPage extends ConsumerWidget {
       builder: (orders) {
         if (orders.isEmpty) {
           return const CenterText(
-            text: 'There are no orders tos how.',
+            text: 'There are no orders to show.',
             autofocus: true,
           );
         }
