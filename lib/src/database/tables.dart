@@ -25,6 +25,9 @@ class CustomerAddresses extends Table with IdMixin, NameMixin {
   IntColumn get customerId =>
       integer().references(Customers, #id, onDelete: KeyAction.cascade)();
 
+  /// When this address was created.
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
   /// The street address.
   TextColumn get street => text()();
 
@@ -45,10 +48,17 @@ class CustomerAddresses extends Table with IdMixin, NameMixin {
 class Shops extends Table with IdMixin, NameMixin {
   /// The date when this shop was created.
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// The currency to use in prices.
+  TextColumn get currency => text().withDefault(const Constant('£'))();
 }
 
 /// A product in a shop.
 class ShopProducts extends Table with IdMixin, NameMixin {
+  /// The ID of the shop this product is part of.
+  IntColumn get shopId =>
+      integer().references(Shops, #id, onDelete: KeyAction.restrict)();
+
   /// The date this product was first available.
   DateTimeColumn get firstAvailable =>
       dateTime().withDefault(currentDateAndTime)();
@@ -84,6 +94,10 @@ class ShopOrders extends Table with IdMixin, NameMixin {
 
 /// An item in a shop order.
 class OrderItems extends Table with IdMixin {
+  /// The ID of the order this item is part of.
+  IntColumn get orderId =>
+      integer().references(ShopOrders, #id, onDelete: KeyAction.cascade)();
+
   /// The ID of the product being ordered.
   IntColumn get productId =>
       integer().references(ShopProducts, #id, onDelete: KeyAction.restrict)();
