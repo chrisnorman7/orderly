@@ -36,6 +36,12 @@ final addressProvider = FutureProvider.family<CustomerAddress, int>((ref, id) {
       .getSingle();
 });
 
+/// Provide all shops.
+final shopsProvider = FutureProvider<List<Shop>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.managers.shops.orderBy((o) => o.createdAt.desc()).get();
+});
+
 /// Provide all products in a [Shop].
 final productsProvider = FutureProvider.family<List<ShopProduct>, Shop>((
   ref,
