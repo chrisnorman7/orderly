@@ -51,6 +51,15 @@ class Shops extends Table with IdMixin, NameMixin {
 
   /// The currency to use in prices.
   TextColumn get currency => text().withDefault(const Constant('£'))();
+
+  /// The payment link to use.
+  ///
+  /// The [paymentUrl] will be rendered with Jinja.
+  TextColumn get paymentUrl => text().withDefault(
+    const Constant(
+      'https://monzo.me/<username>/{{ price }}?d={{ reference }}&account_type=personal',
+    ),
+  )();
 }
 
 /// A product in a shop.

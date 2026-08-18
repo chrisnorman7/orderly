@@ -22,4 +22,14 @@ class OrderContext {
 
   /// The items in this [order].
   final List<OrderItemContext> items;
+
+  /// Get the price of the products in this order.
+  int get productsPrice => items.fold(
+    0,
+    (previousValue, element) =>
+        previousValue + element.product.price * element.quantity,
+  );
+
+  /// Get the total price for this order.
+  int get totalPrice => productsPrice + order.postageCost;
 }
