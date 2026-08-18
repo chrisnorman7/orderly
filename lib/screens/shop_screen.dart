@@ -1,4 +1,5 @@
 import 'package:backstreets_widgets/screens.dart';
+import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orderly/src/database/database.dart';
@@ -15,18 +16,20 @@ class ShopScreen extends ConsumerWidget {
 
   /// Build the widget.
   @override
-  Widget build(BuildContext context, WidgetRef ref) => TabbedScaffold(
-    tabs: [
-      TabbedScaffoldTab(
-        title: 'Products',
-        icon: const Icon(Icons.shop),
-        child: ProductsPage(shop: shop),
-      ),
-      TabbedScaffoldTab(
-        title: 'Orders',
-        icon: const Icon(Icons.sports_basketball),
-        child: ShopOrdersPage(shop: shop),
-      ),
-    ],
+  Widget build(BuildContext context, WidgetRef ref) => Cancel(
+    child: TabbedScaffold(
+      tabs: [
+        TabbedScaffoldTab(
+          title: 'Products',
+          icon: const Icon(Icons.shop),
+          child: ProductsPage(shop: shop),
+        ),
+        TabbedScaffoldTab(
+          title: 'Orders',
+          icon: const Icon(Icons.sports_basketball),
+          child: ShopOrdersPage(shop: shop),
+        ),
+      ],
+    ),
   );
 }
