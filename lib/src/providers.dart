@@ -24,7 +24,7 @@ final addressesProvider =
       final db = ref.watch(databaseProvider);
       return db.managers.customerAddresses
           .filter((f) => f.customerId.id.equals(customer.id))
-          .orderBy((o) => o.createdAt.desc())
+          .orderBy((o) => o.name.asc())
           .get();
     });
 

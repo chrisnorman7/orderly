@@ -1,8 +1,11 @@
 import 'package:backstreets_widgets/extensions.dart';
+import 'package:backstreets_widgets/screens.dart';
 import 'package:backstreets_widgets/widgets.dart';
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orderly/screens/shop_screen.dart';
+import 'package:orderly/src/performable_actions/rename_action.dart';
 import 'package:orderly/src/providers.dart';
 import 'package:orderly/widgets/async_value_builder.dart';
 
@@ -14,6 +17,7 @@ class ShopsPage extends ConsumerWidget {
   /// Build the widget.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final db = ref.watch(databaseProvider);
     final value = ref.watch(shopsProvider);
     return AsyncValueBuilder(
       value: value,
@@ -27,8 +31,33 @@ class ShopsPage extends ConsumerWidget {
         return ListView.builder(
           itemBuilder: (context, index) {
             final shop = shops[index];
+            final query = db.managers.shops.filter((f) => f.id.equals(shop.id));
             return PerformableActionsListTile(
-              actions: const [],
+              actions: [
+                RenameAction(
+                  context: context,
+                  currentName: shop.name,
+                  setName: (newName) async {
+                    await query.update((o) => o(name: Value(newName)));
+                    ref.invalidate(shopsProvider);
+                  },
+                ),
+                PerformableAction(
+                  name: 'Change Currency',
+                  invoke: () => context.pushWidgetBuilder(
+                    (builderContext) => GetText(
+                      onDone: (currency) async {
+                        builderContext.pop();
+                        await query.update((o) => o(currency: Value(currency)));
+                        ref.invalidate(shopsProvider);
+                      },
+                      labelText: 'New currency',
+                      text: shop.currency,
+                      title: 'Change Currency',
+                    ),
+                  ),
+                ),
+              ],
               autofocus: index == 0,
               title: Text(shop.name),
               subtitle: Text(shop.currency),
