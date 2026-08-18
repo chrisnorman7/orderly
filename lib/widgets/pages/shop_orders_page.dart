@@ -1,9 +1,11 @@
+import 'package:backstreets_widgets/extensions.dart';
 import 'package:backstreets_widgets/shortcuts.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orderly/screens/edit_order_screen.dart';
 import 'package:orderly/src/database/database.dart';
 import 'package:orderly/src/extensions.dart';
 import 'package:orderly/src/performable_actions/price_actions.dart';
@@ -95,7 +97,9 @@ class ShopOrdersPage extends ConsumerWidget {
                 // ignore: lines_longer_than_80_chars
                 '${shop.currency}${order.totalPrice.asPrice} (${shop.currency}${order.order.postageCost.asPrice})',
               ),
-              onTap: () {},
+              onTap: () => context.pushWidgetBuilder(
+                (_) => EditOrderScreen(shop: shop, order: order.order),
+              ),
             );
           },
           itemCount: orders.length,

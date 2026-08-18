@@ -39,7 +39,7 @@ final addressProvider = FutureProvider.family<CustomerAddress, int>((ref, id) {
 /// Provide all shops.
 final shopsProvider = FutureProvider<List<Shop>>((ref) {
   final db = ref.watch(databaseProvider);
-  return db.managers.shops.orderBy((o) => o.createdAt.desc()).get();
+  return db.managers.shops.orderBy((o) => o.name.asc()).get();
 });
 
 /// Provide all products in a [Shop].
@@ -60,6 +60,15 @@ final productProvider = FutureProvider.family<ShopProduct, int>((ref, id) {
   return db.managers.shopProducts.filter((f) => f.id.equals(id)).getSingle();
 });
 
+/// Provide a single order item context.
+final orderItemProvider = FutureProvider.family<OrderItemContext, OrderItem>((
+  ref,
+  item,
+) async {
+  final product = await ref.watch(productProvider(item.productId).future);
+  return OrderItemContext(orderItem: item, product: product);
+});
+
 /// Provide full items for an order.
 final orderItemsProvider =
     FutureProvider.family<List<OrderItemContext>, ShopOrder>((
@@ -72,8 +81,7 @@ final orderItemsProvider =
           .get();
       final items = <OrderItemContext>[];
       for (final item in orderItems) {
-        final product = await ref.watch(productProvider(item.productId).future);
-        items.add(OrderItemContext(orderItem: item, product: product));
+        items.add(await ref.watch(orderItemProvider(item).future));
       }
       return items;
     });
