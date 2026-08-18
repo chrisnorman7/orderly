@@ -1563,6 +1563,18 @@ class $ShopOrdersTable extends ShopOrders
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _shopIdMeta = const VerificationMeta('shopId');
+  @override
+  late final GeneratedColumn<int> shopId = GeneratedColumn<int>(
+    'shop_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES shops (id) ON DELETE CASCADE',
+    ),
+  );
   static const VerificationMeta _orderPlacedMeta = const VerificationMeta(
     'orderPlaced',
   );
@@ -1588,6 +1600,18 @@ class $ShopOrdersTable extends ShopOrders
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'REFERENCES customer_addresses (id) ON DELETE CASCADE',
     ),
+  );
+  static const VerificationMeta _postageCostMeta = const VerificationMeta(
+    'postageCost',
+  );
+  @override
+  late final GeneratedColumn<int> postageCost = GeneratedColumn<int>(
+    'postage_cost',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _orderPaidMeta = const VerificationMeta(
     'orderPaid',
@@ -1616,8 +1640,10 @@ class $ShopOrdersTable extends ShopOrders
   List<GeneratedColumn> get $columns => [
     id,
     name,
+    shopId,
     orderPlaced,
     addressId,
+    postageCost,
     orderPaid,
     orderDispatched,
   ];
@@ -1644,6 +1670,14 @@ class $ShopOrdersTable extends ShopOrders
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('shop_id')) {
+      context.handle(
+        _shopIdMeta,
+        shopId.isAcceptableOrUnknown(data['shop_id']!, _shopIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_shopIdMeta);
+    }
     if (data.containsKey('order_placed')) {
       context.handle(
         _orderPlacedMeta,
@@ -1660,6 +1694,15 @@ class $ShopOrdersTable extends ShopOrders
       );
     } else if (isInserting) {
       context.missing(_addressIdMeta);
+    }
+    if (data.containsKey('postage_cost')) {
+      context.handle(
+        _postageCostMeta,
+        postageCost.isAcceptableOrUnknown(
+          data['postage_cost']!,
+          _postageCostMeta,
+        ),
+      );
     }
     if (data.containsKey('order_paid')) {
       context.handle(
@@ -1693,6 +1736,10 @@ class $ShopOrdersTable extends ShopOrders
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      shopId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}shop_id'],
+      )!,
       orderPlaced: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}order_placed'],
@@ -1700,6 +1747,10 @@ class $ShopOrdersTable extends ShopOrders
       addressId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}address_id'],
+      )!,
+      postageCost: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}postage_cost'],
       )!,
       orderPaid: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -1725,6 +1776,9 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
   /// The name column.
   final String name;
 
+  /// The shop that items for this order will be chosen from.
+  final int shopId;
+
   /// When this order was placed.
   ///
   /// The [orderPlaced] column will also act as the order number.
@@ -1732,6 +1786,9 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
 
   /// The address where this order will be sent.
   final int addressId;
+
+  /// The postage cost for this order.
+  final int postageCost;
 
   /// When this order was paid for.
   final DateTime? orderPaid;
@@ -1741,8 +1798,10 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
   const ShopOrder({
     required this.id,
     required this.name,
+    required this.shopId,
     required this.orderPlaced,
     required this.addressId,
+    required this.postageCost,
     this.orderPaid,
     this.orderDispatched,
   });
@@ -1751,8 +1810,10 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    map['shop_id'] = Variable<int>(shopId);
     map['order_placed'] = Variable<DateTime>(orderPlaced);
     map['address_id'] = Variable<int>(addressId);
+    map['postage_cost'] = Variable<int>(postageCost);
     if (!nullToAbsent || orderPaid != null) {
       map['order_paid'] = Variable<DateTime>(orderPaid);
     }
@@ -1766,8 +1827,10 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     return ShopOrdersCompanion(
       id: Value(id),
       name: Value(name),
+      shopId: Value(shopId),
       orderPlaced: Value(orderPlaced),
       addressId: Value(addressId),
+      postageCost: Value(postageCost),
       orderPaid: orderPaid == null && nullToAbsent
           ? const Value.absent()
           : Value(orderPaid),
@@ -1785,8 +1848,10 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     return ShopOrder(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      shopId: serializer.fromJson<int>(json['shopId']),
       orderPlaced: serializer.fromJson<DateTime>(json['orderPlaced']),
       addressId: serializer.fromJson<int>(json['addressId']),
+      postageCost: serializer.fromJson<int>(json['postageCost']),
       orderPaid: serializer.fromJson<DateTime?>(json['orderPaid']),
       orderDispatched: serializer.fromJson<DateTime?>(json['orderDispatched']),
     );
@@ -1797,8 +1862,10 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'shopId': serializer.toJson<int>(shopId),
       'orderPlaced': serializer.toJson<DateTime>(orderPlaced),
       'addressId': serializer.toJson<int>(addressId),
+      'postageCost': serializer.toJson<int>(postageCost),
       'orderPaid': serializer.toJson<DateTime?>(orderPaid),
       'orderDispatched': serializer.toJson<DateTime?>(orderDispatched),
     };
@@ -1807,15 +1874,19 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
   ShopOrder copyWith({
     int? id,
     String? name,
+    int? shopId,
     DateTime? orderPlaced,
     int? addressId,
+    int? postageCost,
     Value<DateTime?> orderPaid = const Value.absent(),
     Value<DateTime?> orderDispatched = const Value.absent(),
   }) => ShopOrder(
     id: id ?? this.id,
     name: name ?? this.name,
+    shopId: shopId ?? this.shopId,
     orderPlaced: orderPlaced ?? this.orderPlaced,
     addressId: addressId ?? this.addressId,
+    postageCost: postageCost ?? this.postageCost,
     orderPaid: orderPaid.present ? orderPaid.value : this.orderPaid,
     orderDispatched: orderDispatched.present
         ? orderDispatched.value
@@ -1825,10 +1896,14 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     return ShopOrder(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      shopId: data.shopId.present ? data.shopId.value : this.shopId,
       orderPlaced: data.orderPlaced.present
           ? data.orderPlaced.value
           : this.orderPlaced,
       addressId: data.addressId.present ? data.addressId.value : this.addressId,
+      postageCost: data.postageCost.present
+          ? data.postageCost.value
+          : this.postageCost,
       orderPaid: data.orderPaid.present ? data.orderPaid.value : this.orderPaid,
       orderDispatched: data.orderDispatched.present
           ? data.orderDispatched.value
@@ -1841,8 +1916,10 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     return (StringBuffer('ShopOrder(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('shopId: $shopId, ')
           ..write('orderPlaced: $orderPlaced, ')
           ..write('addressId: $addressId, ')
+          ..write('postageCost: $postageCost, ')
           ..write('orderPaid: $orderPaid, ')
           ..write('orderDispatched: $orderDispatched')
           ..write(')'))
@@ -1850,16 +1927,26 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, orderPlaced, addressId, orderPaid, orderDispatched);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    shopId,
+    orderPlaced,
+    addressId,
+    postageCost,
+    orderPaid,
+    orderDispatched,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ShopOrder &&
           other.id == this.id &&
           other.name == this.name &&
+          other.shopId == this.shopId &&
           other.orderPlaced == this.orderPlaced &&
           other.addressId == this.addressId &&
+          other.postageCost == this.postageCost &&
           other.orderPaid == this.orderPaid &&
           other.orderDispatched == this.orderDispatched);
 }
@@ -1867,40 +1954,51 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
 class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
   final Value<int> id;
   final Value<String> name;
+  final Value<int> shopId;
   final Value<DateTime> orderPlaced;
   final Value<int> addressId;
+  final Value<int> postageCost;
   final Value<DateTime?> orderPaid;
   final Value<DateTime?> orderDispatched;
   const ShopOrdersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.shopId = const Value.absent(),
     this.orderPlaced = const Value.absent(),
     this.addressId = const Value.absent(),
+    this.postageCost = const Value.absent(),
     this.orderPaid = const Value.absent(),
     this.orderDispatched = const Value.absent(),
   });
   ShopOrdersCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    required int shopId,
     this.orderPlaced = const Value.absent(),
     required int addressId,
+    this.postageCost = const Value.absent(),
     this.orderPaid = const Value.absent(),
     this.orderDispatched = const Value.absent(),
   }) : name = Value(name),
+       shopId = Value(shopId),
        addressId = Value(addressId);
   static Insertable<ShopOrder> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<int>? shopId,
     Expression<DateTime>? orderPlaced,
     Expression<int>? addressId,
+    Expression<int>? postageCost,
     Expression<DateTime>? orderPaid,
     Expression<DateTime>? orderDispatched,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (shopId != null) 'shop_id': shopId,
       if (orderPlaced != null) 'order_placed': orderPlaced,
       if (addressId != null) 'address_id': addressId,
+      if (postageCost != null) 'postage_cost': postageCost,
       if (orderPaid != null) 'order_paid': orderPaid,
       if (orderDispatched != null) 'order_dispatched': orderDispatched,
     });
@@ -1909,16 +2007,20 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
   ShopOrdersCompanion copyWith({
     Value<int>? id,
     Value<String>? name,
+    Value<int>? shopId,
     Value<DateTime>? orderPlaced,
     Value<int>? addressId,
+    Value<int>? postageCost,
     Value<DateTime?>? orderPaid,
     Value<DateTime?>? orderDispatched,
   }) {
     return ShopOrdersCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
+      shopId: shopId ?? this.shopId,
       orderPlaced: orderPlaced ?? this.orderPlaced,
       addressId: addressId ?? this.addressId,
+      postageCost: postageCost ?? this.postageCost,
       orderPaid: orderPaid ?? this.orderPaid,
       orderDispatched: orderDispatched ?? this.orderDispatched,
     );
@@ -1933,11 +2035,17 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (shopId.present) {
+      map['shop_id'] = Variable<int>(shopId.value);
+    }
     if (orderPlaced.present) {
       map['order_placed'] = Variable<DateTime>(orderPlaced.value);
     }
     if (addressId.present) {
       map['address_id'] = Variable<int>(addressId.value);
+    }
+    if (postageCost.present) {
+      map['postage_cost'] = Variable<int>(postageCost.value);
     }
     if (orderPaid.present) {
       map['order_paid'] = Variable<DateTime>(orderPaid.value);
@@ -1953,8 +2061,10 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
     return (StringBuffer('ShopOrdersCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('shopId: $shopId, ')
           ..write('orderPlaced: $orderPlaced, ')
           ..write('addressId: $addressId, ')
+          ..write('postageCost: $postageCost, ')
           ..write('orderPaid: $orderPaid, ')
           ..write('orderDispatched: $orderDispatched')
           ..write(')'))
@@ -2353,6 +2463,13 @@ abstract class _$OrderlyDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('customer_addresses', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'shops',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('shop_orders', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -3151,6 +3268,24 @@ final class $$ShopsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$ShopOrdersTable, List<ShopOrder>>
+  _shopOrdersRefsTable(_$OrderlyDatabase db) => MultiTypedResultKey.fromTable(
+    db.shopOrders,
+    aliasName: 'shops__id__shop_orders__shop_id',
+  );
+
+  $$ShopOrdersTableProcessedTableManager get shopOrdersRefs {
+    final manager = $$ShopOrdersTableTableManager(
+      $_db,
+      $_db.shopOrders,
+    ).filter((f) => f.shopId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_shopOrdersRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$ShopsTableFilterComposer
@@ -3198,6 +3333,31 @@ class $$ShopsTableFilterComposer
           }) => $$ShopProductsTableFilterComposer(
             $db: $db,
             $table: $db.shopProducts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> shopOrdersRefs(
+    Expression<bool> Function($$ShopOrdersTableFilterComposer f) f,
+  ) {
+    final $$ShopOrdersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.shopOrders,
+      getReferencedColumn: (t) => t.shopId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ShopOrdersTableFilterComposer(
+            $db: $db,
+            $table: $db.shopOrders,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3283,6 +3443,31 @@ class $$ShopsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> shopOrdersRefs<T extends Object>(
+    Expression<T> Function($$ShopOrdersTableAnnotationComposer a) f,
+  ) {
+    final $$ShopOrdersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.shopOrders,
+      getReferencedColumn: (t) => t.shopId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ShopOrdersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.shopOrders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ShopsTableTableManager
@@ -3298,7 +3483,7 @@ class $$ShopsTableTableManager
           $$ShopsTableUpdateCompanionBuilder,
           (Shop, $$ShopsTableReferences),
           Shop,
-          PrefetchHooks Function({bool shopProductsRefs})
+          PrefetchHooks Function({bool shopProductsRefs, bool shopOrdersRefs})
         > {
   $$ShopsTableTableManager(_$OrderlyDatabase db, $ShopsTable table)
     : super(
@@ -3341,31 +3526,59 @@ class $$ShopsTableTableManager
                     (e.readTable(table), $$ShopsTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({shopProductsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (shopProductsRefs) db.shopProducts],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (shopProductsRefs)
-                    await $_getPrefetchedData<Shop, $ShopsTable, ShopProduct>(
-                      currentTable: table,
-                      referencedTable: $$ShopsTableReferences
-                          ._shopProductsRefsTable(db),
-                      managerFromTypedResult: (p0) => $$ShopsTableReferences(
-                        db,
-                        table,
-                        p0,
-                      ).shopProductsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.shopId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({shopProductsRefs = false, shopOrdersRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (shopProductsRefs) db.shopProducts,
+                    if (shopOrdersRefs) db.shopOrders,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (shopProductsRefs)
+                        await $_getPrefetchedData<
+                          Shop,
+                          $ShopsTable,
+                          ShopProduct
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ShopsTableReferences
+                              ._shopProductsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ShopsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).shopProductsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.shopId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (shopOrdersRefs)
+                        await $_getPrefetchedData<Shop, $ShopsTable, ShopOrder>(
+                          currentTable: table,
+                          referencedTable: $$ShopsTableReferences
+                              ._shopOrdersRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ShopsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).shopOrdersRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.shopId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -3382,7 +3595,7 @@ typedef $$ShopsTableProcessedTableManager =
       $$ShopsTableUpdateCompanionBuilder,
       (Shop, $$ShopsTableReferences),
       Shop,
-      PrefetchHooks Function({bool shopProductsRefs})
+      PrefetchHooks Function({bool shopProductsRefs, bool shopOrdersRefs})
     >;
 typedef $$ShopProductsTableCreateCompanionBuilder =
     ShopProductsCompanion Function({
@@ -3809,16 +4022,20 @@ typedef $$ShopProductsTableProcessedTableManager =
 typedef $$ShopOrdersTableCreateCompanionBuilder = ShopOrdersCompanion Function({
   Value<int> id,
   required String name,
+  required int shopId,
   Value<DateTime> orderPlaced,
   required int addressId,
+  Value<int> postageCost,
   Value<DateTime?> orderPaid,
   Value<DateTime?> orderDispatched,
 });
 typedef $$ShopOrdersTableUpdateCompanionBuilder = ShopOrdersCompanion Function({
   Value<int> id,
   Value<String> name,
+  Value<int> shopId,
   Value<DateTime> orderPlaced,
   Value<int> addressId,
+  Value<int> postageCost,
   Value<DateTime?> orderPaid,
   Value<DateTime?> orderDispatched,
 });
@@ -3826,6 +4043,23 @@ typedef $$ShopOrdersTableUpdateCompanionBuilder = ShopOrdersCompanion Function({
 final class $$ShopOrdersTableReferences
     extends BaseReferences<_$OrderlyDatabase, $ShopOrdersTable, ShopOrder> {
   $$ShopOrdersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ShopsTable _shopIdTable(_$OrderlyDatabase db) =>
+      db.shops.createAlias('shop_orders__shop_id__shops__id');
+
+  $$ShopsTableProcessedTableManager get shopId {
+    final $_column = $_itemColumn<int>('shop_id')!;
+
+    final manager = $$ShopsTableTableManager(
+      $_db,
+      $_db.shops,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_shopIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static $CustomerAddressesTable _addressIdTable(_$OrderlyDatabase db) => db
       .customerAddresses
@@ -3888,6 +4122,11 @@ class $$ShopOrdersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get postageCost => $composableBuilder(
+    column: $table.postageCost,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get orderPaid => $composableBuilder(
     column: $table.orderPaid,
     builder: (column) => ColumnFilters(column),
@@ -3897,6 +4136,29 @@ class $$ShopOrdersTableFilterComposer
     column: $table.orderDispatched,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$ShopsTableFilterComposer get shopId {
+    final $$ShopsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.shopId,
+      referencedTable: $db.shops,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ShopsTableFilterComposer(
+            $db: $db,
+            $table: $db.shops,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   $$CustomerAddressesTableFilterComposer get addressId {
     final $$CustomerAddressesTableFilterComposer composer = $composerBuilder(
@@ -3971,6 +4233,11 @@ class $$ShopOrdersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get postageCost => $composableBuilder(
+    column: $table.postageCost,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get orderPaid => $composableBuilder(
     column: $table.orderPaid,
     builder: (column) => ColumnOrderings(column),
@@ -3980,6 +4247,29 @@ class $$ShopOrdersTableOrderingComposer
     column: $table.orderDispatched,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$ShopsTableOrderingComposer get shopId {
+    final $$ShopsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.shopId,
+      referencedTable: $db.shops,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ShopsTableOrderingComposer(
+            $db: $db,
+            $table: $db.shops,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   $$CustomerAddressesTableOrderingComposer get addressId {
     final $$CustomerAddressesTableOrderingComposer composer = $composerBuilder(
@@ -4025,6 +4315,11 @@ class $$ShopOrdersTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get postageCost => $composableBuilder(
+    column: $table.postageCost,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get orderPaid =>
       $composableBuilder(column: $table.orderPaid, builder: (column) => column);
 
@@ -4032,6 +4327,29 @@ class $$ShopOrdersTableAnnotationComposer
     column: $table.orderDispatched,
     builder: (column) => column,
   );
+
+  $$ShopsTableAnnotationComposer get shopId {
+    final $$ShopsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.shopId,
+      referencedTable: $db.shops,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ShopsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.shops,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   $$CustomerAddressesTableAnnotationComposer get addressId {
     final $$CustomerAddressesTableAnnotationComposer composer =
@@ -4096,7 +4414,11 @@ class $$ShopOrdersTableTableManager
           $$ShopOrdersTableUpdateCompanionBuilder,
           (ShopOrder, $$ShopOrdersTableReferences),
           ShopOrder,
-          PrefetchHooks Function({bool addressId, bool orderItemsRefs})
+          PrefetchHooks Function({
+            bool shopId,
+            bool addressId,
+            bool orderItemsRefs,
+          })
         > {
   $$ShopOrdersTableTableManager(_$OrderlyDatabase db, $ShopOrdersTable table)
     : super(
@@ -4113,15 +4435,19 @@ class $$ShopOrdersTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<int> shopId = const Value.absent(),
                 Value<DateTime> orderPlaced = const Value.absent(),
                 Value<int> addressId = const Value.absent(),
+                Value<int> postageCost = const Value.absent(),
                 Value<DateTime?> orderPaid = const Value.absent(),
                 Value<DateTime?> orderDispatched = const Value.absent(),
               }) => ShopOrdersCompanion(
                 id: id,
                 name: name,
+                shopId: shopId,
                 orderPlaced: orderPlaced,
                 addressId: addressId,
+                postageCost: postageCost,
                 orderPaid: orderPaid,
                 orderDispatched: orderDispatched,
               ),
@@ -4129,15 +4455,19 @@ class $$ShopOrdersTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
+                required int shopId,
                 Value<DateTime> orderPlaced = const Value.absent(),
                 required int addressId,
+                Value<int> postageCost = const Value.absent(),
                 Value<DateTime?> orderPaid = const Value.absent(),
                 Value<DateTime?> orderDispatched = const Value.absent(),
               }) => ShopOrdersCompanion.insert(
                 id: id,
                 name: name,
+                shopId: shopId,
                 orderPlaced: orderPlaced,
                 addressId: addressId,
+                postageCost: postageCost,
                 orderPaid: orderPaid,
                 orderDispatched: orderDispatched,
               ),
@@ -4149,65 +4479,79 @@ class $$ShopOrdersTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({addressId = false, orderItemsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (orderItemsRefs) db.orderItems],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (addressId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.addressId,
-                        referencedTable: $$ShopOrdersTableReferences
-                            ._addressIdTable(db),
-                        referencedColumn: $$ShopOrdersTableReferences
-                            ._addressIdTable(db)
-                            .id,
-                      ) as T;
-                    }
+          prefetchHooksCallback:
+              ({shopId = false, addressId = false, orderItemsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [if (orderItemsRefs) db.orderItems],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (shopId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.shopId,
+                            referencedTable: $$ShopOrdersTableReferences
+                                ._shopIdTable(db),
+                            referencedColumn: $$ShopOrdersTableReferences
+                                ._shopIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (addressId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.addressId,
+                            referencedTable: $$ShopOrdersTableReferences
+                                ._addressIdTable(db),
+                            referencedColumn: $$ShopOrdersTableReferences
+                                ._addressIdTable(db)
+                                .id,
+                          ) as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (orderItemsRefs)
+                        await $_getPrefetchedData<
+                          ShopOrder,
+                          $ShopOrdersTable,
+                          OrderItem
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ShopOrdersTableReferences
+                              ._orderItemsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ShopOrdersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).orderItemsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.orderId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (orderItemsRefs)
-                    await $_getPrefetchedData<
-                      ShopOrder,
-                      $ShopOrdersTable,
-                      OrderItem
-                    >(
-                      currentTable: table,
-                      referencedTable: $$ShopOrdersTableReferences
-                          ._orderItemsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$ShopOrdersTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).orderItemsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.orderId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -4224,7 +4568,7 @@ typedef $$ShopOrdersTableProcessedTableManager =
       $$ShopOrdersTableUpdateCompanionBuilder,
       (ShopOrder, $$ShopOrdersTableReferences),
       ShopOrder,
-      PrefetchHooks Function({bool addressId, bool orderItemsRefs})
+      PrefetchHooks Function({bool shopId, bool addressId, bool orderItemsRefs})
     >;
 typedef $$OrderItemsTableCreateCompanionBuilder = OrderItemsCompanion Function({
   Value<int> id,

@@ -72,6 +72,10 @@ class ShopProducts extends Table with IdMixin, NameMixin {
 
 /// An order in a shop.
 class ShopOrders extends Table with IdMixin, NameMixin {
+  /// The shop that items for this order will be chosen from.
+  IntColumn get shopId =>
+      integer().references(Shops, #id, onDelete: KeyAction.cascade)();
+
   /// When this order was placed.
   ///
   /// The [orderPlaced] column will also act as the order number.
@@ -84,6 +88,9 @@ class ShopOrders extends Table with IdMixin, NameMixin {
     #id,
     onDelete: KeyAction.cascade,
   )();
+
+  /// The postage cost for this order.
+  IntColumn get postageCost => integer().withDefault(const Constant(0))();
 
   /// When this order was paid for.
   DateTimeColumn get orderPaid => dateTime().nullable()();

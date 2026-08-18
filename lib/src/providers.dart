@@ -93,3 +93,33 @@ final orderProvider = FutureProvider.family<OrderContext, ShopOrder>((
     items: items,
   );
 });
+
+/// Provide all orders for a given shop.
+final ordersForShopProvider = FutureProvider.family<List<OrderContext>, Shop>((
+  ref,
+  shop,
+) async {
+  final db = ref.watch(databaseProvider);
+  final shopOrders = await db.managers.shopOrders
+      .filter((f) => f.shopId.id.equals(shop.id))
+      .get();
+  final orders = <OrderContext>[];
+  for (final order in shopOrders) {
+    orders.add(await ref.watch(orderProvider(order).future));
+  }
+  return orders;
+});
+
+/// Provide all orders for a given customer.
+final ordersForCustomerProvider =
+    FutureProvider.family<List<OrderContext>, Customer>((ref, customer) async {
+      final db = ref.watch(databaseProvider);
+      final shopOrders = await db.managers.shopOrders
+          .filter((f) => f.addressId.customerId.id.equals(customer.id))
+          .get();
+      final orders = <OrderContext>[];
+      for (final order in shopOrders) {
+        orders.add(await ref.watch(orderProvider(order).future));
+      }
+      return orders;
+    });
