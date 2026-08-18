@@ -50,7 +50,7 @@ final productsProvider = FutureProvider.family<List<ShopProduct>, Shop>((
   final db = ref.watch(databaseProvider);
   return db.managers.shopProducts
       .filter((f) => f.shopId.id.equals(shop.id))
-      .orderBy((o) => o.firstAvailable.desc())
+      .orderBy((o) => o.name.asc())
       .get();
 });
 

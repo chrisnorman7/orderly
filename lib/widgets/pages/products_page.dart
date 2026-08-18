@@ -48,6 +48,7 @@ class ProductsPage extends ConsumerWidget {
                   },
                 ),
                 ...PriceActions(
+                  context: context,
                   price: product.price,
                   currency: shop.currency,
                   onChanged: (newPrice) async {
