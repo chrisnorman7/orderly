@@ -867,8 +867,28 @@ class $ShopsTable extends Shops with TableInfo<$ShopsTable, Shop> {
     requiredDuringInsert: false,
     defaultValue: const Constant('£'),
   );
+  static const VerificationMeta _paymentUrlMeta = const VerificationMeta(
+    'paymentUrl',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name, createdAt, currency];
+  late final GeneratedColumn<String> paymentUrl = GeneratedColumn<String>(
+    'payment_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(
+      'https://monzo.me/<username>/{{ price }}?d={{ reference }}&account_type=personal',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    createdAt,
+    currency,
+    paymentUrl,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -904,6 +924,12 @@ class $ShopsTable extends Shops with TableInfo<$ShopsTable, Shop> {
         currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
       );
     }
+    if (data.containsKey('payment_url')) {
+      context.handle(
+        _paymentUrlMeta,
+        paymentUrl.isAcceptableOrUnknown(data['payment_url']!, _paymentUrlMeta),
+      );
+    }
     return context;
   }
 
@@ -929,6 +955,10 @@ class $ShopsTable extends Shops with TableInfo<$ShopsTable, Shop> {
         DriftSqlType.string,
         data['${effectivePrefix}currency'],
       )!,
+      paymentUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payment_url'],
+      )!,
     );
   }
 
@@ -950,11 +980,17 @@ class Shop extends DataClass implements Insertable<Shop> {
 
   /// The currency to use in prices.
   final String currency;
+
+  /// The payment link to use.
+  ///
+  /// The [paymentUrl] will be rendered with Jinja.
+  final String paymentUrl;
   const Shop({
     required this.id,
     required this.name,
     required this.createdAt,
     required this.currency,
+    required this.paymentUrl,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -963,6 +999,7 @@ class Shop extends DataClass implements Insertable<Shop> {
     map['name'] = Variable<String>(name);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['currency'] = Variable<String>(currency);
+    map['payment_url'] = Variable<String>(paymentUrl);
     return map;
   }
 
@@ -972,6 +1009,7 @@ class Shop extends DataClass implements Insertable<Shop> {
       name: Value(name),
       createdAt: Value(createdAt),
       currency: Value(currency),
+      paymentUrl: Value(paymentUrl),
     );
   }
 
@@ -985,6 +1023,7 @@ class Shop extends DataClass implements Insertable<Shop> {
       name: serializer.fromJson<String>(json['name']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       currency: serializer.fromJson<String>(json['currency']),
+      paymentUrl: serializer.fromJson<String>(json['paymentUrl']),
     );
   }
   @override
@@ -995,6 +1034,7 @@ class Shop extends DataClass implements Insertable<Shop> {
       'name': serializer.toJson<String>(name),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'currency': serializer.toJson<String>(currency),
+      'paymentUrl': serializer.toJson<String>(paymentUrl),
     };
   }
 
@@ -1003,11 +1043,13 @@ class Shop extends DataClass implements Insertable<Shop> {
     String? name,
     DateTime? createdAt,
     String? currency,
+    String? paymentUrl,
   }) => Shop(
     id: id ?? this.id,
     name: name ?? this.name,
     createdAt: createdAt ?? this.createdAt,
     currency: currency ?? this.currency,
+    paymentUrl: paymentUrl ?? this.paymentUrl,
   );
   Shop copyWithCompanion(ShopsCompanion data) {
     return Shop(
@@ -1015,6 +1057,9 @@ class Shop extends DataClass implements Insertable<Shop> {
       name: data.name.present ? data.name.value : this.name,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       currency: data.currency.present ? data.currency.value : this.currency,
+      paymentUrl: data.paymentUrl.present
+          ? data.paymentUrl.value
+          : this.paymentUrl,
     );
   }
 
@@ -1024,13 +1069,14 @@ class Shop extends DataClass implements Insertable<Shop> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('createdAt: $createdAt, ')
-          ..write('currency: $currency')
+          ..write('currency: $currency, ')
+          ..write('paymentUrl: $paymentUrl')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, createdAt, currency);
+  int get hashCode => Object.hash(id, name, createdAt, currency, paymentUrl);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1038,7 +1084,8 @@ class Shop extends DataClass implements Insertable<Shop> {
           other.id == this.id &&
           other.name == this.name &&
           other.createdAt == this.createdAt &&
-          other.currency == this.currency);
+          other.currency == this.currency &&
+          other.paymentUrl == this.paymentUrl);
 }
 
 class ShopsCompanion extends UpdateCompanion<Shop> {
@@ -1046,29 +1093,34 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
   final Value<String> name;
   final Value<DateTime> createdAt;
   final Value<String> currency;
+  final Value<String> paymentUrl;
   const ShopsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.currency = const Value.absent(),
+    this.paymentUrl = const Value.absent(),
   });
   ShopsCompanion.insert({
     this.id = const Value.absent(),
     required String name,
     this.createdAt = const Value.absent(),
     this.currency = const Value.absent(),
+    this.paymentUrl = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Shop> custom({
     Expression<int>? id,
     Expression<String>? name,
     Expression<DateTime>? createdAt,
     Expression<String>? currency,
+    Expression<String>? paymentUrl,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (createdAt != null) 'created_at': createdAt,
       if (currency != null) 'currency': currency,
+      if (paymentUrl != null) 'payment_url': paymentUrl,
     });
   }
 
@@ -1077,12 +1129,14 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
     Value<String>? name,
     Value<DateTime>? createdAt,
     Value<String>? currency,
+    Value<String>? paymentUrl,
   }) {
     return ShopsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       createdAt: createdAt ?? this.createdAt,
       currency: currency ?? this.currency,
+      paymentUrl: paymentUrl ?? this.paymentUrl,
     );
   }
 
@@ -1101,6 +1155,9 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
     if (currency.present) {
       map['currency'] = Variable<String>(currency.value);
     }
+    if (paymentUrl.present) {
+      map['payment_url'] = Variable<String>(paymentUrl.value);
+    }
     return map;
   }
 
@@ -1110,7 +1167,8 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('createdAt: $createdAt, ')
-          ..write('currency: $currency')
+          ..write('currency: $currency, ')
+          ..write('paymentUrl: $paymentUrl')
           ..write(')'))
         .toString();
   }
@@ -3239,12 +3297,14 @@ typedef $$ShopsTableCreateCompanionBuilder = ShopsCompanion Function({
   required String name,
   Value<DateTime> createdAt,
   Value<String> currency,
+  Value<String> paymentUrl,
 });
 typedef $$ShopsTableUpdateCompanionBuilder = ShopsCompanion Function({
   Value<int> id,
   Value<String> name,
   Value<DateTime> createdAt,
   Value<String> currency,
+  Value<String> paymentUrl,
 });
 
 final class $$ShopsTableReferences
@@ -3314,6 +3374,11 @@ class $$ShopsTableFilterComposer
 
   ColumnFilters<String> get currency => $composableBuilder(
     column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get paymentUrl => $composableBuilder(
+    column: $table.paymentUrl,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3396,6 +3461,11 @@ class $$ShopsTableOrderingComposer
     column: $table.currency,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get paymentUrl => $composableBuilder(
+    column: $table.paymentUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ShopsTableAnnotationComposer
@@ -3418,6 +3488,11 @@ class $$ShopsTableAnnotationComposer
 
   GeneratedColumn<String> get currency =>
       $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<String> get paymentUrl => $composableBuilder(
+    column: $table.paymentUrl,
+    builder: (column) => column,
+  );
 
   Expression<T> shopProductsRefs<T extends Object>(
     Expression<T> Function($$ShopProductsTableAnnotationComposer a) f,
@@ -3502,11 +3577,13 @@ class $$ShopsTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<String> currency = const Value.absent(),
+                Value<String> paymentUrl = const Value.absent(),
               }) => ShopsCompanion(
                 id: id,
                 name: name,
                 createdAt: createdAt,
                 currency: currency,
+                paymentUrl: paymentUrl,
               ),
           createCompanionCallback:
               ({
@@ -3514,11 +3591,13 @@ class $$ShopsTableTableManager
                 required String name,
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<String> currency = const Value.absent(),
+                Value<String> paymentUrl = const Value.absent(),
               }) => ShopsCompanion.insert(
                 id: id,
                 name: name,
                 createdAt: createdAt,
                 currency: currency,
+                paymentUrl: paymentUrl,
               ),
           withReferenceMapper: (p0) => p0
               .map(
