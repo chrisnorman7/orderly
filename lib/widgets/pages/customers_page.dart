@@ -1,6 +1,8 @@
 import 'package:backstreets_widgets/widgets.dart';
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orderly/src/performable_actions/rename_action.dart';
 import 'package:orderly/src/providers.dart';
 import 'package:orderly/widgets/async_value_builder.dart';
 
@@ -12,6 +14,7 @@ class CustomersPage extends ConsumerWidget {
   /// Build the widget.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final db = ref.watch(databaseProvider);
     final value = ref.watch(customersProvider);
     return AsyncValueBuilder(
       value: value,
@@ -25,11 +28,22 @@ class CustomersPage extends ConsumerWidget {
         return ListView.builder(
           itemBuilder: (context, index) {
             final customer = customers[index];
+            final query = db.managers.customers.filter(
+              (f) => f.id.equals(customer.id),
+            );
             return PerformableActionsListTile(
-              actions: const [],
+              actions: [
+                RenameAction(
+                  context: context,
+                  currentName: customer.name,
+                  setName: (newName) async {
+                    await query.update((o) => o(name: Value(newName)));
+                  },
+                ),
+              ],
               autofocus: index == 0,
               title: Text(customer.name),
-              subtitle: Text(customer.id.toString()),
+              subtitle: Text('#${customer.id}'),
               onTap: () {},
             );
           },

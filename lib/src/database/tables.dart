@@ -80,7 +80,7 @@ class ShopProducts extends Table with IdMixin, NameMixin {
 }
 
 /// An order in a shop.
-class ShopOrders extends Table with IdMixin, NameMixin {
+class ShopOrders extends Table with IdMixin {
   /// The shop that items for this order will be chosen from.
   IntColumn get shopId =>
       integer().references(Shops, #id, onDelete: KeyAction.cascade)();

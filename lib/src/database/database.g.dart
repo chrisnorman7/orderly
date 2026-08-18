@@ -1612,15 +1612,6 @@ class $ShopOrdersTable extends ShopOrders
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
   static const VerificationMeta _shopIdMeta = const VerificationMeta('shopId');
   @override
   late final GeneratedColumn<int> shopId = GeneratedColumn<int>(
@@ -1697,7 +1688,6 @@ class $ShopOrdersTable extends ShopOrders
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    name,
     shopId,
     orderPlaced,
     addressId,
@@ -1719,14 +1709,6 @@ class $ShopOrdersTable extends ShopOrders
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_nameMeta);
     }
     if (data.containsKey('shop_id')) {
       context.handle(
@@ -1790,10 +1772,6 @@ class $ShopOrdersTable extends ShopOrders
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
       shopId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}shop_id'],
@@ -1831,9 +1809,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
   /// The primary key column.
   final int id;
 
-  /// The name column.
-  final String name;
-
   /// The shop that items for this order will be chosen from.
   final int shopId;
 
@@ -1855,7 +1830,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
   final DateTime? orderDispatched;
   const ShopOrder({
     required this.id,
-    required this.name,
     required this.shopId,
     required this.orderPlaced,
     required this.addressId,
@@ -1867,7 +1841,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['name'] = Variable<String>(name);
     map['shop_id'] = Variable<int>(shopId);
     map['order_placed'] = Variable<DateTime>(orderPlaced);
     map['address_id'] = Variable<int>(addressId);
@@ -1884,7 +1857,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
   ShopOrdersCompanion toCompanion(bool nullToAbsent) {
     return ShopOrdersCompanion(
       id: Value(id),
-      name: Value(name),
       shopId: Value(shopId),
       orderPlaced: Value(orderPlaced),
       addressId: Value(addressId),
@@ -1905,7 +1877,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ShopOrder(
       id: serializer.fromJson<int>(json['id']),
-      name: serializer.fromJson<String>(json['name']),
       shopId: serializer.fromJson<int>(json['shopId']),
       orderPlaced: serializer.fromJson<DateTime>(json['orderPlaced']),
       addressId: serializer.fromJson<int>(json['addressId']),
@@ -1919,7 +1890,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'name': serializer.toJson<String>(name),
       'shopId': serializer.toJson<int>(shopId),
       'orderPlaced': serializer.toJson<DateTime>(orderPlaced),
       'addressId': serializer.toJson<int>(addressId),
@@ -1931,7 +1901,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
 
   ShopOrder copyWith({
     int? id,
-    String? name,
     int? shopId,
     DateTime? orderPlaced,
     int? addressId,
@@ -1940,7 +1909,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     Value<DateTime?> orderDispatched = const Value.absent(),
   }) => ShopOrder(
     id: id ?? this.id,
-    name: name ?? this.name,
     shopId: shopId ?? this.shopId,
     orderPlaced: orderPlaced ?? this.orderPlaced,
     addressId: addressId ?? this.addressId,
@@ -1953,7 +1921,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
   ShopOrder copyWithCompanion(ShopOrdersCompanion data) {
     return ShopOrder(
       id: data.id.present ? data.id.value : this.id,
-      name: data.name.present ? data.name.value : this.name,
       shopId: data.shopId.present ? data.shopId.value : this.shopId,
       orderPlaced: data.orderPlaced.present
           ? data.orderPlaced.value
@@ -1973,7 +1940,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
   String toString() {
     return (StringBuffer('ShopOrder(')
           ..write('id: $id, ')
-          ..write('name: $name, ')
           ..write('shopId: $shopId, ')
           ..write('orderPlaced: $orderPlaced, ')
           ..write('addressId: $addressId, ')
@@ -1987,7 +1953,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
   @override
   int get hashCode => Object.hash(
     id,
-    name,
     shopId,
     orderPlaced,
     addressId,
@@ -2000,7 +1965,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
       identical(this, other) ||
       (other is ShopOrder &&
           other.id == this.id &&
-          other.name == this.name &&
           other.shopId == this.shopId &&
           other.orderPlaced == this.orderPlaced &&
           other.addressId == this.addressId &&
@@ -2011,7 +1975,6 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
 
 class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
   final Value<int> id;
-  final Value<String> name;
   final Value<int> shopId;
   final Value<DateTime> orderPlaced;
   final Value<int> addressId;
@@ -2020,7 +1983,6 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
   final Value<DateTime?> orderDispatched;
   const ShopOrdersCompanion({
     this.id = const Value.absent(),
-    this.name = const Value.absent(),
     this.shopId = const Value.absent(),
     this.orderPlaced = const Value.absent(),
     this.addressId = const Value.absent(),
@@ -2030,19 +1992,16 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
   });
   ShopOrdersCompanion.insert({
     this.id = const Value.absent(),
-    required String name,
     required int shopId,
     this.orderPlaced = const Value.absent(),
     required int addressId,
     this.postageCost = const Value.absent(),
     this.orderPaid = const Value.absent(),
     this.orderDispatched = const Value.absent(),
-  }) : name = Value(name),
-       shopId = Value(shopId),
+  }) : shopId = Value(shopId),
        addressId = Value(addressId);
   static Insertable<ShopOrder> custom({
     Expression<int>? id,
-    Expression<String>? name,
     Expression<int>? shopId,
     Expression<DateTime>? orderPlaced,
     Expression<int>? addressId,
@@ -2052,7 +2011,6 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (name != null) 'name': name,
       if (shopId != null) 'shop_id': shopId,
       if (orderPlaced != null) 'order_placed': orderPlaced,
       if (addressId != null) 'address_id': addressId,
@@ -2064,7 +2022,6 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
 
   ShopOrdersCompanion copyWith({
     Value<int>? id,
-    Value<String>? name,
     Value<int>? shopId,
     Value<DateTime>? orderPlaced,
     Value<int>? addressId,
@@ -2074,7 +2031,6 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
   }) {
     return ShopOrdersCompanion(
       id: id ?? this.id,
-      name: name ?? this.name,
       shopId: shopId ?? this.shopId,
       orderPlaced: orderPlaced ?? this.orderPlaced,
       addressId: addressId ?? this.addressId,
@@ -2089,9 +2045,6 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
     }
     if (shopId.present) {
       map['shop_id'] = Variable<int>(shopId.value);
@@ -2118,7 +2071,6 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
   String toString() {
     return (StringBuffer('ShopOrdersCompanion(')
           ..write('id: $id, ')
-          ..write('name: $name, ')
           ..write('shopId: $shopId, ')
           ..write('orderPlaced: $orderPlaced, ')
           ..write('addressId: $addressId, ')
@@ -4100,7 +4052,6 @@ typedef $$ShopProductsTableProcessedTableManager =
     >;
 typedef $$ShopOrdersTableCreateCompanionBuilder = ShopOrdersCompanion Function({
   Value<int> id,
-  required String name,
   required int shopId,
   Value<DateTime> orderPlaced,
   required int addressId,
@@ -4110,7 +4061,6 @@ typedef $$ShopOrdersTableCreateCompanionBuilder = ShopOrdersCompanion Function({
 });
 typedef $$ShopOrdersTableUpdateCompanionBuilder = ShopOrdersCompanion Function({
   Value<int> id,
-  Value<String> name,
   Value<int> shopId,
   Value<DateTime> orderPlaced,
   Value<int> addressId,
@@ -4188,11 +4138,6 @@ class $$ShopOrdersTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4302,11 +4247,6 @@ class $$ShopOrdersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<DateTime> get orderPlaced => $composableBuilder(
     column: $table.orderPlaced,
     builder: (column) => ColumnOrderings(column),
@@ -4385,9 +4325,6 @@ class $$ShopOrdersTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
 
   GeneratedColumn<DateTime> get orderPlaced => $composableBuilder(
     column: $table.orderPlaced,
@@ -4513,7 +4450,6 @@ class $$ShopOrdersTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<String> name = const Value.absent(),
                 Value<int> shopId = const Value.absent(),
                 Value<DateTime> orderPlaced = const Value.absent(),
                 Value<int> addressId = const Value.absent(),
@@ -4522,7 +4458,6 @@ class $$ShopOrdersTableTableManager
                 Value<DateTime?> orderDispatched = const Value.absent(),
               }) => ShopOrdersCompanion(
                 id: id,
-                name: name,
                 shopId: shopId,
                 orderPlaced: orderPlaced,
                 addressId: addressId,
@@ -4533,7 +4468,6 @@ class $$ShopOrdersTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required String name,
                 required int shopId,
                 Value<DateTime> orderPlaced = const Value.absent(),
                 required int addressId,
@@ -4542,7 +4476,6 @@ class $$ShopOrdersTableTableManager
                 Value<DateTime?> orderDispatched = const Value.absent(),
               }) => ShopOrdersCompanion.insert(
                 id: id,
-                name: name,
                 shopId: shopId,
                 orderPlaced: orderPlaced,
                 addressId: addressId,
