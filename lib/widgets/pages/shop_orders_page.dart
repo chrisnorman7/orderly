@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orderly/src/database/database.dart';
 import 'package:orderly/src/extensions.dart';
+import 'package:orderly/src/performable_actions/price_actions.dart';
 import 'package:orderly/src/providers.dart';
 import 'package:orderly/widgets/async_value_builder.dart';
 import 'package:orderly/widgets/date_text.dart';
@@ -78,10 +79,23 @@ class ShopOrdersPage extends ConsumerWidget {
                     ref.invalidate(ordersForShopProvider(shop));
                   },
                 ),
+                ...PriceActions(
+                  context: context,
+                  price: order.order.postageCost,
+                  currency: shop.currency,
+                  onChanged: (newPrice) async {
+                    await query.update((o) => o(postageCost: Value(newPrice)));
+                    ref.invalidate(orderProvider(order.order));
+                  },
+                ).actions,
               ],
               autofocus: index == 0,
               title: DateText(date: order.order.orderPlaced),
-              subtitle: Text('${shop.currency}${order.totalPrice.asPrice}'),
+              subtitle: Text(
+                // ignore: lines_longer_than_80_chars
+                '${shop.currency}${order.totalPrice.asPrice} (${shop.currency}${order.order.postageCost.asPrice})',
+              ),
+              onTap: () {},
             );
           },
           itemCount: orders.length,
