@@ -2,12 +2,14 @@ import 'package:backstreets_widgets/extensions.dart';
 import 'package:backstreets_widgets/shortcuts.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:drift/drift.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orderly/screens/edit_order_screen.dart';
 import 'package:orderly/src/database/database.dart';
 import 'package:orderly/src/extensions.dart';
+import 'package:orderly/src/order_invoice.dart';
 import 'package:orderly/src/performable_actions/price_actions.dart';
 import 'package:orderly/src/providers.dart';
 import 'package:orderly/widgets/async_value_builder.dart';
@@ -91,62 +93,30 @@ class ShopOrdersPage extends ConsumerWidget {
                   },
                 ).actions,
                 PerformableAction(
-                  name: 'Copy Email Text',
-                  activator: copyShortcut,
-                  invoke: () {
-                    final address = order.address;
-                    final buffer = StringBuffer()
-                      ..writeln(
-                        'Order #${_formatDateTime(order.order.orderPlaced)}.',
-                      )
-                      ..writeln('Deliver to:')
-                      ..writeln(order.customer.name)
-                      ..writeln(address.street)
-                      ..writeln(address.city)
-                      ..writeln(address.state)
-                      ..writeln(address.country)
-                      ..writeln(address.postcode)
-                      ..writeln()
-                      ..writeln('Items in order:')
-                      ..writeln(
-                        [
-                          'Product',
-                          'Quantity',
-                          'Unit Price',
-                          'Total Price',
-                          'Notes',
-                        ].join('\t'),
-                      );
-                    for (final item in order.items) {
-                      final product = item.product;
-                      buffer.writeln(
-                        [
-                          product.name,
-                          'x ${item.quantity}',
-                          '${shop.currency}${product.price.asPrice}',
+                  name: 'Save Invoice',
+                  activator: CrossPlatformSingleActivator(
+                    LogicalKeyboardKey.keyS,
+                  ),
+                  invoke: () async {
+                    final invoice = OrderInvoice(shop: shop, order: order);
+                    final document = invoice.makePdf();
+                    final location = await getSaveLocation(
+                      acceptedTypeGroups: [
+                        const XTypeGroup(
+                          extensions: ['pdf'],
+                          label: 'Portable Document File',
+                        ),
+                      ],
+                      suggestedName:
                           // ignore: lines_longer_than_80_chars
-                          '${shop.currency}${(product.price * item.quantity).asPrice}',
-                          if (item.orderItem.notes.isEmpty)
-                            'N/A'
-                          else
-                            item.orderItem.notes,
-                        ].join('\t'),
-                      );
+                          'order_${order.order.orderPlaced.asOrderNumber()}.pdf',
+                    );
+                    if (location == null) {
+                      return;
                     }
-                    buffer
-                      ..writeln()
-                      ..writeln(
-                        // ignore: lines_longer_than_80_chars
-                        'Before Postage: ${shop.currency}${order.productsPrice.asPrice}',
-                      )
-                      ..writeln(
-                        // ignore: lines_longer_than_80_chars
-                        'Postage: ${shop.currency}${order.order.postageCost.asPrice}',
-                      )
-                      ..writeln(
-                        'Total: ${shop.currency}${order.totalPrice.asPrice}',
-                      );
-                    buffer.toString().copyToClipboard();
+                    final data = await document.save();
+                    final file = XFile.fromData(data);
+                    await file.saveTo(location.path);
                   },
                 ),
               ],
@@ -167,17 +137,4 @@ class ShopOrdersPage extends ConsumerWidget {
       },
     );
   }
-
-  String _formatDateTime(DateTime date) {
-    String twoDigits(int value) => value.toString().padLeft(2, '0');
-
-    return '${date.year}'
-        '${twoDigits(date.month)}'
-        '${twoDigits(date.day)}'
-        '${twoDigits(date.hour)}'
-        '${twoDigits(date.minute)}'
-        '${twoDigits(date.second)}';
-  }
-
-  // Example: 20260818210645
 }
