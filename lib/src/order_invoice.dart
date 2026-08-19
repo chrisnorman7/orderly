@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:orderly/src/database/database.dart';
 import 'package:orderly/src/extensions.dart';
 import 'package:orderly/src/order_context.dart';
@@ -20,23 +21,36 @@ class OrderInvoice {
     final address = order.address;
     final document =
         pw.Document(
-            author: shop.name,
-            creator: 'Orderly',
-            keywords: '${shop.name} Invoice',
-          )
-          ..addPage(
-            pw.Page(
-              build: (context) => pw.Column(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          author: shop.name,
+          creator: 'Orderly',
+          keywords: '${shop.name} Invoice',
+        )..addPage(
+          pw.Page(
+            build: (context) {
+              final items = order.items;
+              final invoiceDate = DateFormat('dd MMMM yyyy')
+                  .format(order.order.orderPlaced);
+              final boldTextStyle = pw.TextStyle.defaultStyle().copyWith(
+                fontWeight: pw.FontWeight.bold,
+              );
+              return pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Center(
-                    child: pw.Header(
-                      child: pw.Text(
+                  pw.Header(child: pw.Text('Invoice', style: boldTextStyle)),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text(
                         'Order #${order.order.orderPlaced.asOrderNumber()}',
+                        style: boldTextStyle,
                       ),
-                    ),
+                      pw.Text('Date: $invoiceDate'),
+                    ],
                   ),
-                  pw.Header(level: 2, child: pw.Text('Deliver To')),
+                  pw.Header(
+                    level: 2,
+                    child: pw.Text('Deliver To', style: boldTextStyle),
+                  ),
                   ...<String>[
                     '${order.customer.name} (${address.name})',
                     address.street,
@@ -45,19 +59,17 @@ class OrderInvoice {
                     address.country,
                     address.postcode,
                   ].map(pw.Text.new),
-                ],
-              ),
-              pageFormat: PdfPageFormat.a4,
-            ),
-          )
-          ..addPage(
-            pw.Page(
-              build: (context) {
-                final items = order.items;
-                return pw.Column(
-                  children: [
-                    pw.TableHelper.fromTextArray(
-                      data: items.map((item) {
+                  pw.TableHelper.fromTextArray(
+                    headers: [
+                      'Product',
+                      'Quantity',
+                      'Unit Price',
+                      'Total Price',
+                      'Notes',
+                    ].map((s) => pw.Text(s, style: boldTextStyle)).toList(),
+                    headerCount: 5,
+                    data: [
+                      ...items.map((item) {
                         final product = item.product;
                         return [
                           product.name,
@@ -69,29 +81,43 @@ class OrderInvoice {
                           else
                             item.orderItem.notes,
                         ];
-                      }).toList(),
-                      headers: [
-                        'Product',
-                        'Quantity',
-                        'Unit Price',
-                        'Total Price',
-                        'Notes',
+                      }),
+                      [
+                        'Price without postage',
+                        '',
+                        '',
+                        shop.getPrice(order.productsPrice),
+                        '',
                       ],
-                    ),
-                    pw.Header(
-                      level: 2,
-                      child: pw.Text('Price without postage'),
-                    ),
-                    pw.Text(shop.getPrice(order.productsPrice)),
-                    pw.Header(level: 2, child: pw.Text('Postage')),
-                    pw.Text(shop.getPrice(order.order.postageCost)),
-                    pw.Header(level: 2, child: pw.Text('Total')),
-                    pw.Text(shop.getPrice(order.totalPrice)),
-                  ],
-                );
-              },
-            ),
-          );
+                      [
+                        'Postage',
+                        '',
+                        '',
+                        shop.getPrice(order.order.postageCost),
+                        '',
+                      ],
+                      [
+                        'Total Price',
+                        '',
+                        '',
+                        shop.getPrice(order.totalPrice),
+                        '',
+                      ],
+                      [
+                        'Order Total',
+                        '',
+                        '',
+                        shop.getPrice(order.totalPrice),
+                        '',
+                      ],
+                    ],
+                  ),
+                ],
+              );
+            },
+            pageFormat: PdfPageFormat.a4,
+          ),
+        );
     return document;
   }
 }

@@ -10,9 +10,13 @@ extension IntX on int {
     if (this < 0) {
       return '-${abs().asPrice}';
     }
+    if (this == 0) {
+      return '0.00';
+    }
     final pounds = (this / 100).floor();
     final pence = this % 100;
-    return '$pounds.$pence';
+    final penceString = pence.toString().padLeft(2, '0');
+    return '$pounds.$penceString';
   }
 }
 
