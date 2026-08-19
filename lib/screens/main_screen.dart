@@ -3,6 +3,8 @@ import 'package:backstreets_widgets/screens.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orderly/screens/addresses_screen.dart';
+import 'package:orderly/screens/shop_screen.dart';
 import 'package:orderly/src/database/database.dart';
 import 'package:orderly/src/providers.dart';
 import 'package:orderly/widgets/pages/customers_page.dart';
@@ -68,9 +70,14 @@ class MainScreenState extends ConsumerState<MainScreen> {
     (builderContext) => GetText(
       onDone: (name) async {
         builderContext.pop();
-        await _database.managers.customers.createReturning(
+        final customer = await _database.managers.customers.createReturning(
           (o) => o(name: name),
         );
+        if (ref.context.mounted) {
+          await ref.context.pushWidgetBuilder(
+            (_) => AddressesScreen(customer: customer),
+          );
+        }
         ref.invalidate(customersProvider);
       },
       labelText: 'Customer name',
@@ -83,7 +90,12 @@ class MainScreenState extends ConsumerState<MainScreen> {
     (builderContext) => GetText(
       onDone: (name) async {
         builderContext.pop();
-        await _database.managers.shops.createReturning((o) => o(name: name));
+        final shop = await _database.managers.shops.createReturning(
+          (o) => o(name: name),
+        );
+        if (ref.context.mounted) {
+          await ref.context.pushWidgetBuilder((_) => ShopScreen(shop: shop));
+        }
         ref.invalidate(shopsProvider);
       },
       labelText: 'Shop name',

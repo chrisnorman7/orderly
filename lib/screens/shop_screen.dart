@@ -3,6 +3,7 @@ import 'package:backstreets_widgets/screens.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orderly/screens/edit_order_screen.dart';
 import 'package:orderly/screens/new_order_screen.dart';
 import 'package:orderly/src/database/database.dart';
 import 'package:orderly/src/providers.dart';
@@ -68,6 +69,11 @@ class ShopScreen extends ConsumerWidget {
 
   /// Create a new order.
   Future<void> _newOrder(WidgetRef ref) => ref.context.pushWidgetBuilder(
-    (_) => NewOrderScreen(shop: shop, onDone: (order) {}),
+    (_) => NewOrderScreen(
+      shop: shop,
+      onDone: (order) => ref.context.pushWidgetBuilder(
+        (_) => EditOrderScreen(shop: shop, order: order),
+      ),
+    ),
   );
 }
