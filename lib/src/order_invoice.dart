@@ -33,10 +33,17 @@ class OrderInvoice {
               final boldTextStyle = pw.TextStyle.defaultStyle().copyWith(
                 fontWeight: pw.FontWeight.bold,
               );
+              final paymentUrl = shop
+                  .getPaymentUrl(
+                    price: order.totalPrice.asPrice,
+                    reference: '#${order.order.orderPlaced.asOrderNumber()}',
+                  )
+                  .toString();
               return pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Header(child: pw.Text('Invoice', style: boldTextStyle)),
+                  pw.Text('Thank you for shopping with ${shop.name}.'),
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
@@ -59,6 +66,20 @@ class OrderInvoice {
                     address.country,
                     address.postcode,
                   ].map(pw.Text.new),
+                  pw.Header(
+                    level: 2,
+                    child: pw.Text('Payment Link', style: boldTextStyle),
+                  ),
+                  pw.Link(
+                    child: pw.Text(
+                      paymentUrl,
+                      style: pw.TextStyle.defaultStyle().copyWith(
+                        decoration: pw.TextDecoration.underline,
+                      ),
+                    ),
+                    destination: paymentUrl,
+                  ),
+                  pw.SizedBox(height: 50.0),
                   pw.TableHelper.fromTextArray(
                     headers: [
                       'Product',

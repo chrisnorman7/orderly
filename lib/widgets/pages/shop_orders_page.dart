@@ -13,7 +13,6 @@ import 'package:orderly/src/order_invoice.dart';
 import 'package:orderly/src/performable_actions/price_actions.dart';
 import 'package:orderly/src/providers.dart';
 import 'package:orderly/widgets/async_value_builder.dart';
-import 'package:orderly/widgets/date_text.dart';
 
 /// The shop orders page.
 class ShopOrdersPage extends ConsumerWidget {
@@ -121,10 +120,13 @@ class ShopOrdersPage extends ConsumerWidget {
                 ),
               ],
               autofocus: index == 0,
-              title: DateText(date: order.order.orderPlaced),
+              title: Text(
+                // ignore: lines_longer_than_80_chars
+                '${order.customer.name} (#${order.order.orderPlaced.asOrderNumber()})',
+              ),
               subtitle: Text(
                 // ignore: lines_longer_than_80_chars
-                '${shop.currency}${order.totalPrice.asPrice} (${shop.currency}${order.order.postageCost.asPrice})',
+                '${shop.getPrice(order.totalPrice)} (${shop.getPrice(order.order.postageCost)} postage)',
               ),
               onTap: () => context.pushWidgetBuilder(
                 (_) => EditOrderScreen(shop: shop, order: order.order),
