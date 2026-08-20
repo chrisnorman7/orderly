@@ -1,13 +1,17 @@
 import 'package:backstreets_widgets/extensions.dart';
 import 'package:backstreets_widgets/screens.dart';
+import 'package:backstreets_widgets/shortcuts.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orderly/screens/shop_screen.dart';
+import 'package:orderly/src/extensions.dart';
 import 'package:orderly/src/performable_actions/rename_action.dart';
 import 'package:orderly/src/providers.dart';
 import 'package:orderly/widgets/async_value_builder.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// The shops page.
 class ShopsPage extends ConsumerWidget {
@@ -54,6 +58,39 @@ class ShopsPage extends ConsumerWidget {
                       labelText: 'New currency',
                       text: shop.currency,
                       title: 'Change Currency',
+                    ),
+                  ),
+                ),
+                PerformableAction(
+                  name: 'Change Payment URL',
+                  activator: CrossPlatformSingleActivator(
+                    LogicalKeyboardKey.keyU,
+                    shift: true,
+                  ),
+                  invoke: () => context.pushWidgetBuilder(
+                    (builderContext) => GetText(
+                      onDone: (url) async {
+                        builderContext.pop();
+                        await query.update((o) => o(paymentUrl: Value(url)));
+                        ref.invalidate(shopsProvider);
+                      },
+                      // ignore: lines_longer_than_80_chars
+                      labelText: 'Payment URL ({{ price }} for price, {{ reference }} for reference)',
+                      text: shop.paymentUrl,
+                      title: 'Payment URL',
+                    ),
+                  ),
+                ),
+                PerformableAction(
+                  name: 'Test Payment URL',
+                  activator: CrossPlatformSingleActivator(
+                    LogicalKeyboardKey.keyT,
+                    shift: true,
+                  ),
+                  invoke: () => launchUrl(
+                    shop.getPaymentUrl(
+                      price: '0.01',
+                      reference: 'Test Payment',
                     ),
                   ),
                 ),

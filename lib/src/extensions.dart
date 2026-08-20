@@ -1,3 +1,4 @@
+import 'package:jinja/jinja.dart';
 import 'package:orderly/src/database/database.dart';
 
 /// Useful extensions for [int]s.
@@ -38,4 +39,15 @@ extension DateTimeX on DateTime {
 extension ShopX on Shop {
   /// Return [price] as a readable string.
   String getPrice(int price) => '$currency${price.asPrice}';
+
+  /// Get the fully-encoded URL from this [Shop].
+  Uri getPaymentUrl({required String price, required String reference}) {
+    final environment = Environment();
+    final template = environment.fromString(paymentUrl);
+    final url = template.render({
+      'price': Uri.encodeComponent(price),
+      'reference': Uri.encodeComponent(reference),
+    });
+    return Uri.parse(url);
+  }
 }
