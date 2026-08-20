@@ -118,6 +118,12 @@ class ShopOrdersPage extends ConsumerWidget {
                     await file.saveTo(location.path);
                   },
                 ),
+                PerformableAction(
+                  name: 'Copy Order Number',
+                  activator: copyShortcut,
+                  invoke: () => '#${order.order.orderPlaced.asOrderNumber()}'
+                      .copyToClipboard(),
+                ),
                 if (order.items.isEmpty)
                   PerformableAction(
                     name: 'Delete',
