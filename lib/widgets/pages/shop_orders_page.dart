@@ -13,6 +13,7 @@ import 'package:orderly/src/order_invoice.dart';
 import 'package:orderly/src/performable_actions/price_actions.dart';
 import 'package:orderly/src/providers.dart';
 import 'package:orderly/widgets/async_value_builder.dart';
+import 'package:orderly/widgets/date_text.dart';
 
 /// The shop orders page.
 class ShopOrdersPage extends ConsumerWidget {
@@ -42,13 +43,25 @@ class ShopOrdersPage extends ConsumerWidget {
             final query = db.managers.shopOrders.filter(
               (f) => f.id.equals(order.order.id),
             );
+            final String status;
+            final orderCancelled = order.order.orderCancelled;
+            final orderDispatched = order.order.orderDispatched;
+            final orderPaid = order.order.orderPaid;
+            if (orderCancelled != null) {
+              status = 'Cancelled on ${dateFormatter.format(orderCancelled)}';
+            } else if (orderDispatched != null) {
+              status = 'Dispatched on ${dateFormatter.format(orderDispatched)}';
+            } else if (orderPaid != null) {
+              status = 'Paid on ${dateFormatter.format(orderPaid)}';
+            } else {
+              status = 'Unpaid';
+            }
             return PerformableActionsListTile(
               actions: [
                 PerformableAction(
                   name: 'Order Paid',
                   activator: CrossPlatformSingleActivator(
                     LogicalKeyboardKey.keyP,
-                    shift: true,
                   ),
                   checked: order.order.orderPaid != null,
                   invoke: () async {
@@ -74,6 +87,26 @@ class ShopOrdersPage extends ConsumerWidget {
                       (o) => o(
                         orderDispatched: Value(
                           order.order.orderDispatched == null
+                              ? DateTime.now()
+                              : null,
+                        ),
+                      ),
+                    );
+                    ref.invalidate(ordersForShopProvider(shop));
+                  },
+                ),
+                PerformableAction(
+                  name: 'Order Cancelled',
+                  activator: CrossPlatformSingleActivator(
+                    LogicalKeyboardKey.keyC,
+                    shift: true,
+                  ),
+                  checked: order.order.orderCancelled != null,
+                  invoke: () async {
+                    await query.update(
+                      (o) => o(
+                        orderCancelled: Value(
+                          order.order.orderCancelled == null
                               ? DateTime.now()
                               : null,
                         ),
@@ -164,11 +197,16 @@ class ShopOrdersPage extends ConsumerWidget {
               autofocus: index == 0,
               title: Text(
                 // ignore: lines_longer_than_80_chars
-                '${order.customer.name} (#${order.order.orderPlaced.asOrderNumber()})',
+                [
+                  // ignore: lines_longer_than_80_chars
+                  '${order.customer.name} (#${order.order.orderPlaced.asOrderNumber()})',
+                  // ignore: lines_longer_than_80_chars
+                  '${shop.getPrice(order.totalPrice)} (${shop.getPrice(order.order.postageCost)} postage)',
+                ].join('\n'),
               ),
               subtitle: Text(
                 // ignore: lines_longer_than_80_chars
-                '${shop.getPrice(order.totalPrice)} (${shop.getPrice(order.order.postageCost)} postage)',
+                status,
               ),
               onTap: () => context.pushWidgetBuilder(
                 (_) => EditOrderScreen(shop: shop, order: order.order),

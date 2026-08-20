@@ -1685,6 +1685,18 @@ class $ShopOrdersTable extends ShopOrders
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _orderCancelledMeta = const VerificationMeta(
+    'orderCancelled',
+  );
+  @override
+  late final GeneratedColumn<DateTime> orderCancelled =
+      GeneratedColumn<DateTime>(
+        'order_cancelled',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1694,6 +1706,7 @@ class $ShopOrdersTable extends ShopOrders
     postageCost,
     orderPaid,
     orderDispatched,
+    orderCancelled,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1759,6 +1772,15 @@ class $ShopOrdersTable extends ShopOrders
         ),
       );
     }
+    if (data.containsKey('order_cancelled')) {
+      context.handle(
+        _orderCancelledMeta,
+        orderCancelled.isAcceptableOrUnknown(
+          data['order_cancelled']!,
+          _orderCancelledMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1796,6 +1818,10 @@ class $ShopOrdersTable extends ShopOrders
         DriftSqlType.dateTime,
         data['${effectivePrefix}order_dispatched'],
       ),
+      orderCancelled: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}order_cancelled'],
+      ),
     );
   }
 
@@ -1828,6 +1854,9 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
 
   /// When this order was dispatched.
   final DateTime? orderDispatched;
+
+  /// The date time when the order was cancelled.
+  final DateTime? orderCancelled;
   const ShopOrder({
     required this.id,
     required this.shopId,
@@ -1836,6 +1865,7 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     required this.postageCost,
     this.orderPaid,
     this.orderDispatched,
+    this.orderCancelled,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1850,6 +1880,9 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     }
     if (!nullToAbsent || orderDispatched != null) {
       map['order_dispatched'] = Variable<DateTime>(orderDispatched);
+    }
+    if (!nullToAbsent || orderCancelled != null) {
+      map['order_cancelled'] = Variable<DateTime>(orderCancelled);
     }
     return map;
   }
@@ -1867,6 +1900,9 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
       orderDispatched: orderDispatched == null && nullToAbsent
           ? const Value.absent()
           : Value(orderDispatched),
+      orderCancelled: orderCancelled == null && nullToAbsent
+          ? const Value.absent()
+          : Value(orderCancelled),
     );
   }
 
@@ -1883,6 +1919,7 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
       postageCost: serializer.fromJson<int>(json['postageCost']),
       orderPaid: serializer.fromJson<DateTime?>(json['orderPaid']),
       orderDispatched: serializer.fromJson<DateTime?>(json['orderDispatched']),
+      orderCancelled: serializer.fromJson<DateTime?>(json['orderCancelled']),
     );
   }
   @override
@@ -1896,6 +1933,7 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
       'postageCost': serializer.toJson<int>(postageCost),
       'orderPaid': serializer.toJson<DateTime?>(orderPaid),
       'orderDispatched': serializer.toJson<DateTime?>(orderDispatched),
+      'orderCancelled': serializer.toJson<DateTime?>(orderCancelled),
     };
   }
 
@@ -1907,6 +1945,7 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     int? postageCost,
     Value<DateTime?> orderPaid = const Value.absent(),
     Value<DateTime?> orderDispatched = const Value.absent(),
+    Value<DateTime?> orderCancelled = const Value.absent(),
   }) => ShopOrder(
     id: id ?? this.id,
     shopId: shopId ?? this.shopId,
@@ -1917,6 +1956,9 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     orderDispatched: orderDispatched.present
         ? orderDispatched.value
         : this.orderDispatched,
+    orderCancelled: orderCancelled.present
+        ? orderCancelled.value
+        : this.orderCancelled,
   );
   ShopOrder copyWithCompanion(ShopOrdersCompanion data) {
     return ShopOrder(
@@ -1933,6 +1975,9 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
       orderDispatched: data.orderDispatched.present
           ? data.orderDispatched.value
           : this.orderDispatched,
+      orderCancelled: data.orderCancelled.present
+          ? data.orderCancelled.value
+          : this.orderCancelled,
     );
   }
 
@@ -1945,7 +1990,8 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
           ..write('addressId: $addressId, ')
           ..write('postageCost: $postageCost, ')
           ..write('orderPaid: $orderPaid, ')
-          ..write('orderDispatched: $orderDispatched')
+          ..write('orderDispatched: $orderDispatched, ')
+          ..write('orderCancelled: $orderCancelled')
           ..write(')'))
         .toString();
   }
@@ -1959,6 +2005,7 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
     postageCost,
     orderPaid,
     orderDispatched,
+    orderCancelled,
   );
   @override
   bool operator ==(Object other) =>
@@ -1970,7 +2017,8 @@ class ShopOrder extends DataClass implements Insertable<ShopOrder> {
           other.addressId == this.addressId &&
           other.postageCost == this.postageCost &&
           other.orderPaid == this.orderPaid &&
-          other.orderDispatched == this.orderDispatched);
+          other.orderDispatched == this.orderDispatched &&
+          other.orderCancelled == this.orderCancelled);
 }
 
 class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
@@ -1981,6 +2029,7 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
   final Value<int> postageCost;
   final Value<DateTime?> orderPaid;
   final Value<DateTime?> orderDispatched;
+  final Value<DateTime?> orderCancelled;
   const ShopOrdersCompanion({
     this.id = const Value.absent(),
     this.shopId = const Value.absent(),
@@ -1989,6 +2038,7 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
     this.postageCost = const Value.absent(),
     this.orderPaid = const Value.absent(),
     this.orderDispatched = const Value.absent(),
+    this.orderCancelled = const Value.absent(),
   });
   ShopOrdersCompanion.insert({
     this.id = const Value.absent(),
@@ -1998,6 +2048,7 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
     this.postageCost = const Value.absent(),
     this.orderPaid = const Value.absent(),
     this.orderDispatched = const Value.absent(),
+    this.orderCancelled = const Value.absent(),
   }) : shopId = Value(shopId),
        addressId = Value(addressId);
   static Insertable<ShopOrder> custom({
@@ -2008,6 +2059,7 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
     Expression<int>? postageCost,
     Expression<DateTime>? orderPaid,
     Expression<DateTime>? orderDispatched,
+    Expression<DateTime>? orderCancelled,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2017,6 +2069,7 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
       if (postageCost != null) 'postage_cost': postageCost,
       if (orderPaid != null) 'order_paid': orderPaid,
       if (orderDispatched != null) 'order_dispatched': orderDispatched,
+      if (orderCancelled != null) 'order_cancelled': orderCancelled,
     });
   }
 
@@ -2028,6 +2081,7 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
     Value<int>? postageCost,
     Value<DateTime?>? orderPaid,
     Value<DateTime?>? orderDispatched,
+    Value<DateTime?>? orderCancelled,
   }) {
     return ShopOrdersCompanion(
       id: id ?? this.id,
@@ -2037,6 +2091,7 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
       postageCost: postageCost ?? this.postageCost,
       orderPaid: orderPaid ?? this.orderPaid,
       orderDispatched: orderDispatched ?? this.orderDispatched,
+      orderCancelled: orderCancelled ?? this.orderCancelled,
     );
   }
 
@@ -2064,6 +2119,9 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
     if (orderDispatched.present) {
       map['order_dispatched'] = Variable<DateTime>(orderDispatched.value);
     }
+    if (orderCancelled.present) {
+      map['order_cancelled'] = Variable<DateTime>(orderCancelled.value);
+    }
     return map;
   }
 
@@ -2076,7 +2134,8 @@ class ShopOrdersCompanion extends UpdateCompanion<ShopOrder> {
           ..write('addressId: $addressId, ')
           ..write('postageCost: $postageCost, ')
           ..write('orderPaid: $orderPaid, ')
-          ..write('orderDispatched: $orderDispatched')
+          ..write('orderDispatched: $orderDispatched, ')
+          ..write('orderCancelled: $orderCancelled')
           ..write(')'))
         .toString();
   }
@@ -4058,6 +4117,7 @@ typedef $$ShopOrdersTableCreateCompanionBuilder = ShopOrdersCompanion Function({
   Value<int> postageCost,
   Value<DateTime?> orderPaid,
   Value<DateTime?> orderDispatched,
+  Value<DateTime?> orderCancelled,
 });
 typedef $$ShopOrdersTableUpdateCompanionBuilder = ShopOrdersCompanion Function({
   Value<int> id,
@@ -4067,6 +4127,7 @@ typedef $$ShopOrdersTableUpdateCompanionBuilder = ShopOrdersCompanion Function({
   Value<int> postageCost,
   Value<DateTime?> orderPaid,
   Value<DateTime?> orderDispatched,
+  Value<DateTime?> orderCancelled,
 });
 
 final class $$ShopOrdersTableReferences
@@ -4158,6 +4219,11 @@ class $$ShopOrdersTableFilterComposer
 
   ColumnFilters<DateTime> get orderDispatched => $composableBuilder(
     column: $table.orderDispatched,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get orderCancelled => $composableBuilder(
+    column: $table.orderCancelled,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4267,6 +4333,11 @@ class $$ShopOrdersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get orderCancelled => $composableBuilder(
+    column: $table.orderCancelled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ShopsTableOrderingComposer get shopId {
     final $$ShopsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -4341,6 +4412,11 @@ class $$ShopOrdersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get orderDispatched => $composableBuilder(
     column: $table.orderDispatched,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get orderCancelled => $composableBuilder(
+    column: $table.orderCancelled,
     builder: (column) => column,
   );
 
@@ -4456,6 +4532,7 @@ class $$ShopOrdersTableTableManager
                 Value<int> postageCost = const Value.absent(),
                 Value<DateTime?> orderPaid = const Value.absent(),
                 Value<DateTime?> orderDispatched = const Value.absent(),
+                Value<DateTime?> orderCancelled = const Value.absent(),
               }) => ShopOrdersCompanion(
                 id: id,
                 shopId: shopId,
@@ -4464,6 +4541,7 @@ class $$ShopOrdersTableTableManager
                 postageCost: postageCost,
                 orderPaid: orderPaid,
                 orderDispatched: orderDispatched,
+                orderCancelled: orderCancelled,
               ),
           createCompanionCallback:
               ({
@@ -4474,6 +4552,7 @@ class $$ShopOrdersTableTableManager
                 Value<int> postageCost = const Value.absent(),
                 Value<DateTime?> orderPaid = const Value.absent(),
                 Value<DateTime?> orderDispatched = const Value.absent(),
+                Value<DateTime?> orderCancelled = const Value.absent(),
               }) => ShopOrdersCompanion.insert(
                 id: id,
                 shopId: shopId,
@@ -4482,6 +4561,7 @@ class $$ShopOrdersTableTableManager
                 postageCost: postageCost,
                 orderPaid: orderPaid,
                 orderDispatched: orderDispatched,
+                orderCancelled: orderCancelled,
               ),
           withReferenceMapper: (p0) => p0
               .map(

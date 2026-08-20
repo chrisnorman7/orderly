@@ -21,5 +21,18 @@ class OrderlyDatabase extends _$OrderlyDatabase {
 
   /// The schema version.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  /// Get the migration strategy.
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.addColumn(shopOrders, shopOrders.orderCancelled);
+      }
+    },
+  );
 }

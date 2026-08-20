@@ -106,6 +106,9 @@ class ShopOrders extends Table with IdMixin {
 
   /// When this order was dispatched.
   DateTimeColumn get orderDispatched => dateTime().nullable()();
+
+  /// The date time when the order was cancelled.
+  DateTimeColumn get orderCancelled => dateTime().nullable()();
 }
 
 /// An item in a shop order.
