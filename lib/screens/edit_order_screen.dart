@@ -108,7 +108,7 @@ class EditOrderScreen extends ConsumerWidget {
                         ),
                       ],
                       autofocus: index == 0,
-                      title: Text('${item.product.name} x ${item.quantity}'),
+                      title: Text('${item.quantity} x ${item.product.name}'),
                       subtitle: PriceText(
                         shop: shop,
                         price: item.product.price * item.quantity,
