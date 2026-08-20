@@ -94,6 +94,24 @@ class ShopsPage extends ConsumerWidget {
                     ),
                   ),
                 ),
+                PerformableAction(
+                  name: 'Delete',
+                  activator: deleteShortcut,
+                  invoke: () async {
+                    final products = await ref.read(
+                      productsProvider(shop).future,
+                    );
+                    if (products.isEmpty) {
+                      await query.delete();
+                      ref.invalidate(shopsProvider);
+                    } else if (context.mounted) {
+                      await context.showMessage(
+                        message:
+                            'You can only delete shops which have no products.',
+                      );
+                    }
+                  },
+                ),
               ],
               autofocus: index == 0,
               title: Text(shop.name),
