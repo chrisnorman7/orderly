@@ -124,6 +124,33 @@ class ShopOrdersPage extends ConsumerWidget {
                   invoke: () => '#${order.order.orderPlaced.asOrderNumber()}'
                       .copyToClipboard(),
                 ),
+                PerformableAction(
+                  name: 'Create Duplicate',
+                  activator: CrossPlatformSingleActivator(
+                    LogicalKeyboardKey.keyD,
+                  ),
+                  invoke: () async {
+                    final duplicate = await db.managers.shopOrders
+                        .createReturning(
+                          (o) => o(
+                            addressId: order.address.id,
+                            shopId: shop.id,
+                            postageCost: Value(order.order.postageCost),
+                          ),
+                        );
+                    for (final item in order.items) {
+                      await db.managers.orderItems.create(
+                        (o) => o(
+                          orderId: duplicate.id,
+                          productId: item.product.id,
+                          notes: Value(item.orderItem.notes),
+                          quantity: Value(item.quantity),
+                        ),
+                      );
+                    }
+                    ref.invalidate(ordersForShopProvider(shop));
+                  },
+                ),
                 if (order.items.isEmpty)
                   PerformableAction(
                     name: 'Delete',
