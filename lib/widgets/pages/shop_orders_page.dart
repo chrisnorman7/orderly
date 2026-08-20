@@ -118,6 +118,15 @@ class ShopOrdersPage extends ConsumerWidget {
                     await file.saveTo(location.path);
                   },
                 ),
+                if (order.items.isEmpty)
+                  PerformableAction(
+                    name: 'Delete',
+                    activator: deleteShortcut,
+                    invoke: () async {
+                      await query.delete();
+                      ref.invalidate(ordersForShopProvider(shop));
+                    },
+                  ),
               ],
               autofocus: index == 0,
               title: Text(
